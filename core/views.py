@@ -1,6 +1,8 @@
 from rest_framework import generics
 from core.serializers import *
 from core.service import *
+from rest_framework.permissions import IsAuthenticated
+from .permissions import *
 
 #appointments
 class AppointmentView(generics.ListCreateAPIView):
@@ -15,6 +17,7 @@ class AppointmentView(generics.ListCreateAPIView):
 class AppointmentDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AppointmentSerializer
     queryset = Appointment.objects.all()
+    permission_classes = [IsStaff]
 
     def perform_update(self, serializer):
         update_appointment(
@@ -37,6 +40,7 @@ class LabReportView(generics.ListCreateAPIView):
 class LabReportDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = LabReportSerializer
     queryset = LabReport.objects.all()
+    permission_classes = [IsDoctor]
 
     def perform_update(self, serializer):
         update_lab_report(
@@ -60,6 +64,7 @@ class PrescriptionView(generics.ListCreateAPIView):
 class PrescriptionDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = PrescriptionSerializer
     queryset = Prescription.objects.all()
+    permission_classes = [IsDoctor]
 
     def perform_update(self, serializer):
         update_prescription(
@@ -82,7 +87,8 @@ class VitalView(generics.ListCreateAPIView):
 class VitalDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = VitalsSerializer
     queryset = Vitals.objects.all()
-
+    permission_classes = [IsNurse]
+    
     def perform_update(self, serializer):
         update_vital(
             serializer.instance,
