@@ -205,10 +205,10 @@ def get_appointments(user):
         return Appointment.objects.all()
 
     if is_doctor(user):
-        return Appointment.objects.filter(doctor__user=user)
+        return get_doctor_appointments(user)
 
     if is_patient(user):
-        return Appointment.objects.filter(patient__user=user)
+        return get_patient_appointments(user)
 
     return Appointment.objects.none()
 
