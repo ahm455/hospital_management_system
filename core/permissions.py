@@ -1,4 +1,5 @@
 from rest_framework.permissions import BasePermission
+from services.constants import Role
 
 
 class IsStaff(BasePermission):
@@ -7,7 +8,7 @@ class IsStaff(BasePermission):
     def has_permission(self, request, view):
         return (
             request.user.is_authenticated and
-            request.user.role == "STAFF"
+            request.user.role == Role.STAFF
         )
 
 
@@ -17,7 +18,7 @@ class IsDoctor(BasePermission):
     def has_permission(self, request, view):
         return (
             request.user.is_authenticated and
-            request.user.role == "DOCTOR"
+            request.user.role == Role.DOCTOR
         )
 
 
@@ -27,7 +28,7 @@ class IsPatient(BasePermission):
     def has_permission(self, request, view):
         return (
             request.user.is_authenticated and
-            request.user.role == "PATIENT"
+            request.user.role == Role.PATIENT
         )
 
 
@@ -37,5 +38,5 @@ class IsNurse(BasePermission):
     def has_permission(self, request, view):
         return (
             request.user.is_authenticated and
-            request.user.role == "NURSE"
+            request.user.role == Role.NURSE
         )

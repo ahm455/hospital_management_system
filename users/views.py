@@ -1,6 +1,7 @@
 from typing import cast
 from rest_framework import generics
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.filters import SearchFilter
 from services.common import is_staff
 from .models import *
 from .serializers import UserSerializer
@@ -8,7 +9,9 @@ from .serializers import UserSerializer
 
 class UserCreateList(generics.ListCreateAPIView):
     queryset = User.objects.all()
+    filter_backends = [SearchFilter]
     serializer_class = UserSerializer
+    search_fields = ["username", "phone"]
 
     def get_queryset(self):
         user = cast(User, self.request.user)
