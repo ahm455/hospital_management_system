@@ -41,7 +41,9 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'rest_framework',
     'core',
-    'notification'
+    'django_filters',
+    'notification',
+    'dashboard'
 ]
 AUTH_USER_MODEL = "users.User"
 
@@ -104,6 +106,14 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+    'DEFAULT_PAGINATION_CLASS': 'users.pagination.StandardResultsSetPagination',
+    'PAGE_SIZE': 10,
+
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
+    ]
+
 }
 
 CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"

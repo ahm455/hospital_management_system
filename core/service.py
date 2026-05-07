@@ -1,5 +1,5 @@
-from core.cache_key import *
 from datetime import date
+from core.models import Appointment
 from django.core.cache import cache
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from core.models import *
@@ -62,6 +62,7 @@ def get_patient_appointments(user):
     key = patient_appts(user.id)
 
     cached = cache.get(key)
+
     if cached:
         return cached
 
@@ -70,10 +71,11 @@ def get_patient_appointments(user):
         "doctor__user"
     )
 
-    data = AppointmentSerializer(qs, many=True).data
+    # data = AppointmentSerializer(qs, many=True).data
 
-    cache.set(key, data, timeout=300)
-    return data
+    cache.set(key, qs, timeout=300)
+
+    return qs
 
 
 def get_doctor_appointments(user):
@@ -82,6 +84,7 @@ def get_doctor_appointments(user):
 
     cached = cache.get(key)
     if cached:
+        print("cache hit")
         return cached
 
     qs = Appointment.objects.filter(
@@ -94,8 +97,8 @@ def get_doctor_appointments(user):
 
     data = AppointmentSerializer(qs, many=True).data
 
-    cache.set(key, data, timeout=120)
-    return data
+    cache.set(key, qs, timeout=120)
+    return qs
 
 
 def get_patient_prescriptions(user):
@@ -113,8 +116,8 @@ def get_patient_prescriptions(user):
 
     data = PrescriptionSerializer(qs, many=True).data
 
-    cache.set(key, data, timeout=600)
-    return data
+    cache.set(key, qs, timeout=600)
+    return qs
 
 
 def get_patient_labs(user):
@@ -131,8 +134,8 @@ def get_patient_labs(user):
 
     data = LabReportSerializer(qs, many=True).data
 
-    cache.set(key, data, timeout=300)
-    return data
+    cache.set(key, qs, timeout=300)
+    return qs
 
 def get_patient_vitals(user):
     key = patient_vitals(user.id)
@@ -148,8 +151,8 @@ def get_patient_vitals(user):
 
     data = VitalsSerializer(qs, many=True).data
 
-    cache.set(key, data, timeout=300)
-    return data
+    cache.set(key, qs, timeout=300)
+    return qs
 
 #invalid
 def invalidate_appointment_cache(appointment):
@@ -172,6 +175,16 @@ def invalidate_lab_cache(lab):
 def invalidate_vitals_cache(vital):
     cache.delete(patient_vitals(vital.patient.user.id))
 
+def invalidate_patient_dashboard_cache(patient):
+    cache.delete(dashboard_patient(patient.id))
+
+def invalidate_doctor_dashboard_cache(doctor):
+    cache.delete(dashboard_doctor(doctor.id))
+
+def invalidate_nurse_dashboard_cache(nurse):
+    cache.delete(dashboard_nurse(nurse.id))
+
+
 # appointment
 def create_appointment(data, user):
     if not is_staff(user):
@@ -179,7 +192,12 @@ def create_appointment(data, user):
 
     appointment = Appointment.objects.create(**data)
 
+    patient=appointment.patient
+    doctor=appointment.doctor
+
     invalidate_appointment_cache(appointment)
+    invalidate_patient_dashboard_cache(patient)
+    invalidate_doctor_dashboard_cache(doctor)
     appointment_booked(appointment)
 
     return appointment
@@ -189,12 +207,17 @@ def update_appointment(instance, data, user):
     if not is_staff(user):
         raise PermissionDenied("Only staff can update appointments")
 
+    patient=instance.patient
+    doctor=instance.doctor
+
     for k, v in data.items():
         setattr(instance, k, v)
 
     instance.save()
 
     invalidate_appointment_cache(instance)
+    invalidate_patient_dashboard_cache(patient)
+    invalidate_doctor_dashboard_cache(doctor)
     appointment_booked(instance)
 
     return instance
@@ -220,6 +243,12 @@ def create_lab_report(data, user):
 
     lab = LabReport.objects.create(**data)
 
+    patient = lab.patient
+    doctor = lab.ordered_by
+
+    invalidate_patient_dashboard_cache(patient)
+    invalidate_doctor_dashboard_cache(doctor)
+
     invalidate_lab_cache(lab)
 
     return lab
@@ -234,6 +263,11 @@ def update_lab_report(instance, data, user):
 
     instance.save()
 
+    patient = instance.patient
+    doctor = instance.ordered_by.user
+
+    invalidate_patient_dashboard_cache(patient)
+    invalidate_doctor_dashboard_cache(doctor)
     invalidate_lab_cache(instance)
 
     if instance.status == LabReportChoices.READY:
@@ -259,9 +293,11 @@ def create_prescription(data, user):
 
     patient = data["patient"]
     doctor = data["doctor"]
+    appointment=data["appointment"]
 
-    if doctor.user != user:
-        raise PermissionDenied("Only doctor can create prescriptions")
+    if doctor.user != user and patient != appointment.patient:
+        raise PermissionDenied("Doctor and patient don't match the appointment")
+
 
     patient_seen = Appointment.objects.filter(doctor=doctor, patient=patient,status=AppointmentChoices.COMPLETED).exists()
 
@@ -271,6 +307,8 @@ def create_prescription(data, user):
 
     prescription = Prescription.objects.create(**data)
 
+    invalidate_patient_dashboard_cache(patient)
+    invalidate_doctor_dashboard_cache(doctor)
     invalidate_prescription_cache(prescription)
     prescription_issued(prescription)
 
@@ -282,11 +320,17 @@ def update_prescription(instance, data, user):
     if instance.doctor.user != user:
         raise PermissionDenied("Not allowed")
 
+    patient = instance.patient
+    doctor = instance.doctor
+
     for k, v in data.items():
         setattr(instance, k, v)
 
     instance.save()
 
+
+    invalidate_patient_dashboard_cache(patient)
+    invalidate_doctor_dashboard_cache(doctor)
     invalidate_prescription_cache(instance)
 
     return instance
@@ -308,7 +352,13 @@ def create_vital(data, user):
         raise PermissionDenied("Only nurse can record vitals")
 
     vital=Vitals.objects.create(**data)
+
+    nurse = vital.recorded_by
+    patient = vital.patient
+
     invalidate_vitals_cache(vital)
+    invalidate_nurse_dashboard_cache(nurse)
+    invalidate_patient_dashboard_cache(patient)
 
     return vital
 
@@ -317,11 +367,16 @@ def update_vital(instance, data, user):
     if instance.recorded_by.user != user:
         raise PermissionDenied("Not allowed")
 
+    nurse=instance.recorded_by
+    patient = instance.patient
+
     for k, v in data.items():
         setattr(instance, k, v)
 
     instance.save()
     invalidate_vitals_cache(instance)
+    invalidate_nurse_dashboard_cache(nurse)
+    invalidate_patient_dashboard_cache(patient)
     return instance
 
 

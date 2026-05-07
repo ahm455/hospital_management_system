@@ -25,4 +25,5 @@ urlpatterns = [
     path("users/",include('users.urls')),
     path("",include('core.urls')),
     path("notification/",include('notification.urls')),
+    path("dashboard/",include('dashboard.urls')),
 ]
