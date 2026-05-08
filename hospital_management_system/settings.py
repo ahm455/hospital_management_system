@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'core',
     'django_filters',
     'notification',
-    'dashboard'
+    'dashboard',
+    'tests'
 ]
 AUTH_USER_MODEL = "users.User"
 
@@ -119,6 +120,7 @@ REST_FRAMEWORK = {
 CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+CELERY_TASK_ALWAYS_EAGER = True
 CLERK_AUDIENCE = None
 CLERK_DOMAIN = config("CLERK_DOMAIN")
 CLERK_FRONTEND_API = config("CLERK_FRONTEND_API")
@@ -162,8 +164,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 #gmail
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True

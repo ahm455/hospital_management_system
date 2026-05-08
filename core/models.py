@@ -16,6 +16,7 @@ class Appointment(TimeStamp):
 class Vitals(TimeStamp):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="vitals")
     recorded_by = models.ForeignKey(Nurse, on_delete=models.CASCADE, related_name="vitals")
+    recorded_at=models.DateTimeField(auto_now_add=True)
     history = models.CharField(max_length=100,null=True,blank=True)
     pulse = models.IntegerField()
     temperature = models.FloatField()
@@ -29,11 +30,11 @@ class Prescription(TimeStamp):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="prescription")
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name="prescription")
     appointment=models.OneToOneField(Appointment, on_delete=models.CASCADE, related_name="prescription")
-    medication = models.CharField(max_length=100)
+    medicines = models.CharField(max_length=100)
     notes=models.CharField(max_length=100,null=True,blank=True)
 
     def __str__(self):
-        return f"{self.patient}, Doctor : {self.doctor}, {self.medication} ,{self.notes}"
+        return f"{self.patient}, Doctor : {self.doctor}, {self.medicines} ,{self.notes}"
 
 class LabReport(TimeStamp):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="lab_report")
