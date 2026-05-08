@@ -59,3 +59,67 @@ def test_doctor_dashboard_counts_today_vs_yesterday(doctor_client,doctor_user):
     data = response.data
 
     assert data["today_appointments_count"] == 3
+
+
+
+@pytest.mark.django_db
+def test_patient_dashboard_upcoming_appointment_counts(patient_client,patient_user,doctor_user):
+
+    doctor = DoctorFactory()
+
+    today = timezone.now()
+    tomorrow = today + timedelta(days=1)
+    yesterday=today - timedelta(days=1)
+    patient = Patient.objects.get(user=patient_user)
+
+
+    AppointmentFactory.create_batch(
+        3,
+        doctor=doctor,
+        patient=patient,
+        scheduled_at=tomorrow,
+        status=AppointmentChoices.SCHEDULED,
+    )
+
+    AppointmentFactory.create_batch(
+        2,
+        doctor=doctor,
+        patient=patient,
+        scheduled_at=yesterday,
+        status=AppointmentChoices.SCHEDULED,
+    )
+
+    response = patient_client.get("/dashboard/patient/",follow=True)
+    print(response.data)
+
+    assert response.status_code == 200
+
+    data = response.data
+
+    assert data["upcoming_appointments_count"] == 3
+
+@pytest.mark.django_db
+def test_patient_dashboard_upcoming_appointment_counts(nurse_user,nurse_client):
+
+    patient = PatientFactory()
+
+    today = timezone.now()
+    tomorrow = today + timedelta(days=1)
+    yesterday=today - timedelta(days=1)
+    nurse = Nurse.objects.get(user=nurse_user)
+
+
+    VitalsFactory.create_batch(
+        3,
+        recorded_by=nurse,
+        patient=patient,
+    )
+
+    response = nurse_client.get("/dashboard/nurse/",follow=True)
+    print(response.data)
+
+    assert response.status_code == 200
+
+    data = response.data
+
+    assert data["vitals_recorded_today"] == 3
