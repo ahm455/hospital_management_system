@@ -99,13 +99,10 @@ def test_patient_dashboard_upcoming_appointment_counts(patient_client,patient_us
     assert data["upcoming_appointments_count"] == 3
 
 @pytest.mark.django_db
-def test_patient_dashboard_upcoming_appointment_counts(nurse_user,nurse_client):
+def test_nurse_dashboard_vital_counts(nurse_user,nurse_client):
 
     patient = PatientFactory()
 
-    today = timezone.now()
-    tomorrow = today + timedelta(days=1)
-    yesterday=today - timedelta(days=1)
     nurse = Nurse.objects.get(user=nurse_user)
 
 
