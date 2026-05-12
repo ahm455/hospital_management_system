@@ -44,7 +44,10 @@ class UserFactory(BaseFactory):
     )
 
     date_of_birth = Faker("date_of_birth")
-    phone = Faker("phone_number")
+    phone = Faker(
+        "numerify",
+        text="##########"
+    )
 
     @post_generation
     def password(self, create, extracted, **kwargs):
@@ -183,7 +186,6 @@ class VitalsFactory(BaseFactory):
 
     recorded_by = SubFactory(NurseFactory)
 
-    history = Faker("sentence")
 
     pulse = Faker(
         "random_int",

@@ -84,7 +84,12 @@ class LabReportFilter(django_filters.FilterSet):
         field_name="created_at",
         lookup_expr="gte"
     )
+    date_to = django_filters.DateFilter(
+        field_name="created_at",
+        lookup_expr="lte"
+    )
 
+    
     class Meta:
         model = LabReport
         fields = []

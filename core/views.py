@@ -1,10 +1,13 @@
+from django.http import JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
 from core.serializers import *
 from core.service import *
 from rest_framework.filters import SearchFilter
+from rest_framework.generics import get_object_or_404, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from .permissions import *
 from .filter import *
 
@@ -99,3 +102,23 @@ class VitalDetailView(generics.RetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
         instance=update_vital(serializer.instance,serializer.validated_data,self.request.user)
         serializer.instance=instance
+
+
+class AuditHistoryView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+
+        return get_audit_object(
+            model_name=self.kwargs["model"],
+            pk=self.kwargs["pk"],
+            user=self.request.user,
+        )
+
+    def retrieve(self, request, *args, **kwargs):
+
+        obj = self.get_object()
+
+        history = get_audit_history(obj)
+
+        return Response(history)

@@ -1,11 +1,13 @@
-from users.models import *
-from services.constants import *
+from services.constants import AppointmentChoices,LabReportChoices
 from services.common import *
+from simple_history.models import HistoricalRecords
+from users.models import Doctor,Patient,Nurse,Staff,User
 
 class Appointment(TimeStamp):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name="appointment")
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="appointment")
     scheduled_at = models.DateTimeField()
+    history = HistoricalRecords()
     reason=models.CharField(max_length=100,null=True,blank=True)
     status = models.CharField(choices=AppointmentChoices.choices,max_length=10,default=AppointmentChoices.SCHEDULED)
 
@@ -17,7 +19,7 @@ class Vitals(TimeStamp):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="vitals")
     recorded_by = models.ForeignKey(Nurse, on_delete=models.CASCADE, related_name="vitals")
     recorded_at=models.DateTimeField(auto_now_add=True)
-    history = models.CharField(max_length=100,null=True,blank=True)
+    history = HistoricalRecords()
     pulse = models.IntegerField()
     temperature = models.FloatField()
     weight = models.FloatField()
@@ -31,6 +33,7 @@ class Prescription(TimeStamp):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name="prescription")
     appointment=models.OneToOneField(Appointment, on_delete=models.CASCADE, related_name="prescription")
     medicines = models.CharField(max_length=100)
+    history = HistoricalRecords()
     notes=models.CharField(max_length=100,null=True,blank=True)
 
     def __str__(self):
@@ -41,6 +44,7 @@ class LabReport(TimeStamp):
     ordered_by=models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name="lab_report")
     test_name=models.CharField(max_length=100,null=True,blank=True)
     result=models.CharField(max_length=100,null=True,blank=True)
+    history = HistoricalRecords()
     status=models.CharField(max_length=20,choices=LabReportChoices.choices,default=LabReportChoices.PENDING,null=True,blank=True)
 
     def __str__(self):

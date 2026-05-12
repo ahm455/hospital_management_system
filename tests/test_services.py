@@ -17,7 +17,7 @@ def test_staff_can_create_appointment(staff_client, patient_user, doctor_user):
     payload = {
         "patient_id": patient_user.patient_profile.id,
         "doctor_id": doctor_user.doctor_profile.id,
-        "scheduled_at": "2026-05-10T10:00:00Z",
+        "scheduled_at": "2026-05-13T10:00:00Z",
         "reason": "Fever",
     }
 
@@ -32,7 +32,7 @@ def test_doctor_cannot_create_appointment(doctor_client, patient_user, doctor_us
     payload = {
         "patient_id": patient_user.patient_profile.id,
         "doctor_id": doctor_user.doctor_profile.id,
-        "scheduled_at": "2026-05-10T10:00:00Z",
+        "scheduled_at": "2026-05-13T10:00:00Z",
         "reason": "Fever",
     }
 
@@ -46,7 +46,7 @@ def test_patient_can_create_appointment(patient_client, patient_user, doctor_use
     payload = {
         "patient_id": patient_user.patient_profile.id,
         "doctor_id": doctor_user.doctor_profile.id,
-        "scheduled_at": "2026-05-10T10:00:00Z",
+        "scheduled_at": "2026-05-13T10:00:00Z",
         "reason": "Fever",
     }
 
@@ -79,8 +79,8 @@ def test_invalid_appointment_data(staff_client):
 
     assert response.status_code == 400
 
-    @pytest.mark.django_db
-    def test_doctor_can_create_prescription(
+@pytest.mark.django_db
+def test_doctor_can_create_prescription(
             doctor_client,
             patient_user,
             doctor_user,
@@ -92,7 +92,7 @@ def test_invalid_appointment_data(staff_client):
             doctor=doctor,
             status=AppointmentChoices.COMPLETED,
             reason="Checkup",
-            scheduled_at="2026-05-10T10:00:00Z",
+            scheduled_at="2026-05-13T10:00:00Z",
         )
 
         payload = {
