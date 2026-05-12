@@ -218,7 +218,6 @@ def update_appointment(instance, data, user):
     invalidate_appointment_cache(instance)
     invalidate_patient_dashboard_cache(patient)
     invalidate_doctor_dashboard_cache(doctor)
-    appointment_booked(instance)
 
     return instance
 
@@ -264,7 +263,7 @@ def update_lab_report(instance, data, user):
     instance.save()
 
     patient = instance.patient
-    doctor = instance.ordered_by.user
+    doctor = instance.ordered_by
 
     invalidate_patient_dashboard_cache(patient)
     invalidate_doctor_dashboard_cache(doctor)
@@ -295,7 +294,7 @@ def create_prescription(data, user):
     doctor = data["doctor"]
     appointment=data["appointment"]
 
-    if doctor.user != user and patient != appointment.patient:
+    if doctor.user != user or patient != appointment.patient:
         raise PermissionDenied("Doctor and patient don't match the appointment")
 
 

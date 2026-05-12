@@ -1,7 +1,7 @@
 import django_filters
 from core.models import *
 from services import common
-from services.common import is_staff, is_doctor
+from services.common import *
 
 
 class AppointmentFilter(django_filters.FilterSet):
@@ -10,12 +10,12 @@ class AppointmentFilter(django_filters.FilterSet):
     patient = django_filters.NumberFilter(method="filter_patient")
 
     date_from = django_filters.DateFilter(
-        field_name="scheduled_at",
+        field_name="scheduled_at__date",
         lookup_expr="gte"
     )
 
     date_to = django_filters.DateFilter(
-        field_name="scheduled_at",
+        field_name="scheduled_at__date",
         lookup_expr="lte"
     )
 

@@ -20,8 +20,8 @@ class AppointmentView(generics.ListCreateAPIView):
 
 
     def perform_create(self, serializer):
-        create_appointment(serializer.validated_data, self.request.user)
-
+        instance=create_appointment(serializer.validated_data, self.request.user)
+        serializer.instance=instance
 
 class AppointmentDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AppointmentSerializer
@@ -29,11 +29,8 @@ class AppointmentDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsStaff]
 
     def perform_update(self, serializer):
-        update_appointment(
-            serializer.instance,
-            serializer.validated_data,
-            self.request.user
-        )
+        instance=update_appointment(serializer.instance,serializer.validated_data,self.request.user)
+        serializer.instance=instance
 
 #lab reports
 
@@ -47,34 +44,30 @@ class LabReportView(generics.ListCreateAPIView):
         return get_lab_reports(self.request.user)
 
     def perform_create(self, serializer):
-        create_lab_report(serializer.validated_data, self.request.user)
-
+        instance=create_lab_report(serializer.validated_data, self.request.user)
+        serializer.instance=instance
 class LabReportDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = LabReportSerializer
     queryset = LabReport.objects.all()
     permission_classes = [IsDoctor]
 
     def perform_update(self, serializer):
-        update_lab_report(
-            serializer.instance,
-            serializer.validated_data,
-            self.request.user
-        )
-
+        instance=update_lab_report(serializer.instance,serializer.validated_data,self.request.user)
+        serializer.instance=instance
 
 #prescriptions
 class PrescriptionView(generics.ListCreateAPIView):
     serializer_class = PrescriptionSerializer
     filter_backends = [DjangoFilterBackend,SearchFilter]
     filterset_class = PrescriptionFilter
-    search_fields = ["patient__user__username", "medication", "notes", ]
+    search_fields = ["patient__user__username", "medicines", "notes", ]
 
     def get_queryset(self):
         return get_prescriptions(self.request.user)
 
     def perform_create(self, serializer):
-        create_prescription(serializer.validated_data, self.request.user)
-
+       instance=create_prescription(serializer.validated_data, self.request.user)
+       serializer.instance=instance
 
 class PrescriptionDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = PrescriptionSerializer
@@ -82,11 +75,8 @@ class PrescriptionDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsDoctor]
 
     def perform_update(self, serializer):
-        update_prescription(
-            serializer.instance,
-            serializer.validated_data,
-            self.request.user
-        )
+        instance=update_prescription(serializer.instance,serializer.validated_data,self.request.user)
+        serializer.instance=instance
 
 #vitals
 
@@ -98,7 +88,8 @@ class VitalView(generics.ListCreateAPIView):
         return get_vitals(self.request.user)
 
     def perform_create(self, serializer):
-        create_vital(serializer.validated_data, self.request.user)
+        instance=create_vital(serializer.validated_data, self.request.user)
+        serializer.instance=instance
 
 class VitalDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = VitalsSerializer
@@ -106,8 +97,5 @@ class VitalDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsNurse]
     
     def perform_update(self, serializer):
-        update_vital(
-            serializer.instance,
-            serializer.validated_data,
-            self.request.user
-        )
+        instance=update_vital(serializer.instance,serializer.validated_data,self.request.user)
+        serializer.instance=instance
