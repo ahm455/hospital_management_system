@@ -11,7 +11,6 @@ class User(AbstractUser, TimeStamp):
     gender = models.CharField(choices=Gender.choices,max_length=10,null=True)
     phone = models.CharField(max_length=20,null=True)
 
-
 class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="patient_profile")
 
@@ -27,8 +26,3 @@ class Nurse(models.Model):
 
 class Staff(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="staff_profile")
-
-
-
-
-

@@ -415,11 +415,8 @@ def get_audit_object(model_name, pk, user):
     obj = get_object_or_404(model, pk=pk)
 
     if is_staff(user):
+        return obj
 
-        if model.__name__ == "Appointment":
-            return obj
-
-        raise PermissionDenied("Not allowed")
 
 
     if is_doctor(user):
@@ -472,7 +469,7 @@ def safe_value(value):
     if hasattr(value, "pk") and hasattr(value, "__class__") and not isinstance(value, (str, int, float, bool)):
         return {
             "id": value.pk,
-            "username": value.user.username,
+            "value": str(value),
         }
 
     return value
