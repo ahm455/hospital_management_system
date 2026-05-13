@@ -5,6 +5,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from core.models import *
 from core.serializers import *
 from core.cache_key import *
+from rest_framework.generics import get_object_or_404
 from services.constants import *
 from notification.service import create_notification
 
@@ -213,6 +214,8 @@ def update_appointment(instance, data, user):
     for k, v in data.items():
         setattr(instance, k, v)
 
+    instance._history_user = user
+
     instance.save()
 
     invalidate_appointment_cache(instance)
@@ -262,6 +265,7 @@ def update_lab_report(instance, data, user):
 
     instance.save()
 
+    instance._history_user = user
     patient = instance.patient
     doctor = instance.ordered_by
 
@@ -325,8 +329,9 @@ def update_prescription(instance, data, user):
     for k, v in data.items():
         setattr(instance, k, v)
 
-    instance.save()
+    instance._history_user = user
 
+    instance.save()
 
     invalidate_patient_dashboard_cache(patient)
     invalidate_doctor_dashboard_cache(doctor)
@@ -368,7 +373,7 @@ def update_vital(instance, data, user):
 
     nurse=instance.recorded_by
     patient = instance.patient
-
+    instance._history_user = user
     for k, v in data.items():
         setattr(instance, k, v)
 
@@ -390,3 +395,115 @@ def get_vitals(user):
         return get_patient_vitals(user)
 
     return Vitals.objects.none()
+
+#history
+
+MODEL_MAP = {
+    "appointment": Appointment,
+    "prescription": Prescription,
+    "lab_report": LabReport,
+    "vital": Vitals,
+}
+
+def get_audit_object(model_name, pk, user):
+
+    model = MODEL_MAP.get(model_name)
+
+    if not model:
+        raise PermissionDenied("Unknown audit model")
+
+    obj = get_object_or_404(model, pk=pk)
+
+    if is_staff(user):
+        return obj
+
+
+
+    if is_doctor(user):
+
+        # Prescription / Appointment
+        if hasattr(obj, "doctor"):
+            if obj.doctor.user != user:
+                raise PermissionDenied("Not allowed")
+
+        # LabReport
+        if hasattr(obj, "ordered_by"):
+            if obj.ordered_by.user != user:
+                raise PermissionDenied("Not allowed")
+
+        return obj
+
+
+    if is_nurse(user):
+
+        if model.__name__ != "Vitals":
+            raise PermissionDenied("Not allowed")
+
+        if obj.recorded_by.user != user:
+            raise PermissionDenied("Not allowed")
+
+        return obj
+
+
+    if is_patient(user):
+
+        if hasattr(obj, "patient"):
+            if obj.patient.user != user:
+                raise PermissionDenied("Not allowed")
+
+        return obj
+
+    raise PermissionDenied("Not allowed")
+
+def get_audit_history(obj):
+
+    history_qs = obj.history.all()
+
+    return serialize_history(history_qs)
+
+
+def safe_value(value):
+    if value is None:
+        return None
+
+    if hasattr(value, "pk") and hasattr(value, "__class__") and not isinstance(value, (str, int, float, bool)):
+        return {
+            "id": value.pk,
+            "value": str(value),
+        }
+
+    return value
+
+def serialize_history(history):
+    data = []
+
+    history = history.order_by("-history_date")
+    history_list = list(history)
+
+    for i, h in enumerate(history_list):
+        prev = history_list[i + 1] if i + 1 < len(history_list) else None
+
+        if prev:
+            diff = h.diff_against(prev)
+            changed_fields = diff.changed_fields
+        else:
+            changed_fields = []
+
+        data.append({
+            "timestamp": h.history_date,
+            "type": h.history_type,
+            "user": (
+                {
+                    "id": h.history_user.id,
+                    "username": h.history_user.username
+                } if h.history_user else None
+            ),
+            "changed_fields": changed_fields,
+            "state": {
+                field.name: safe_value(getattr(h, field.name))
+                for field in h.instance._meta.fields
+                if not field.name.startswith("history_")
+                        }
+             })
+
+    return data

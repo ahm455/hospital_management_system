@@ -12,12 +12,12 @@ def test_staff_can_create_appointment(staff_client, patient_user, doctor_user):
     payload = {
         "patient_id": patient_user.patient_profile.id,
         "doctor_id": doctor_user.doctor_profile.id,
-        "scheduled_at": "2026-05-10T10:00:00Z",
+        "scheduled_at": "2026-05-13T10:00:00Z",
         "reason": "Fever",
     }
 
     response = staff_client.post("/appointments/", payload)
-
+    print(response.data)
     assert response.status_code == 201
     assert Appointment.objects.count() == 1
 
@@ -27,7 +27,7 @@ def test_doctor_cannot_create_appointment(doctor_client,doctor_user, patient_use
     payload = {
         "patient_id": patient_user.patient_profile.id,
         "doctor_id": doctor_user.doctor_profile.id,
-        "scheduled_at": "2026-05-10T10:00:00Z",
+        "scheduled_at": "2026-05-13T10:00:00Z",
         "reason": "Checkup",
     }
 
@@ -56,7 +56,7 @@ def test_doctor_sees_only_their_appointments(
         patient_id=patient.id,
         doctor_id=doctor.id,
         reason="Fever",
-        scheduled_at="2026-05-10T10:00:00Z",
+        scheduled_at="2026-05-13T10:00:00Z",
     )
 
     Appointment.objects.create(

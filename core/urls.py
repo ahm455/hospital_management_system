@@ -17,4 +17,10 @@ urlpatterns = [
     # Vitals
     path("vitals/", VitalView.as_view(), name="vital-list"),
     path("vitals/<int:pk>/", VitalDetailView.as_view(), name="vital-detail"),
+
+    #audits
+    path("appointments/audit/<int:pk>/", AuditHistoryView.as_view(), {"model": "appointment"}),
+    path("prescriptions/audit/<int:pk>/", AuditHistoryView.as_view(), {"model": "prescription"}),
+    path("lab-reports/audit/<int:pk>/", AuditHistoryView.as_view(), {"model": "lab_report"}),
+    path("vitals/audit/<int:pk>/", AuditHistoryView.as_view(), {"model": "vital"}),
 ]

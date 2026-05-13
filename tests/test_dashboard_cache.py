@@ -15,6 +15,8 @@ def test_doctor_dashboard_cache_behavior(
 
     patient = PatientFactory()
     patient3 = PatientFactory()
+    print(patient)
+    print(patient3)
 
     today = timezone.now()
 

@@ -29,6 +29,7 @@ def test_doctor_dashboard_empty_state(doctor_client):
 def test_doctor_dashboard_counts_today_vs_yesterday(doctor_client,doctor_user):
 
     patient = PatientFactory()
+    print(patient)
 
     today = timezone.now()
     yesterday = today - timedelta(days=1)

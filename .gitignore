@@ -14,8 +14,8 @@ local_settings.py
 db.sqlite3
 
 # 🚫 Migrations (ignore ALL migrations except __init__.py)
-**/migrations/*
-!**/migrations/__init__.py
+#**/migrations/*
+#!**/migrations/__init__.py
 
 # 📦 Virtual environments
 venv/
@@ -58,3 +58,8 @@ dist/
 
 clerk_jwt_helper.py
 helper
+
+# SSH keys
+25519
+*.pem
+*.key

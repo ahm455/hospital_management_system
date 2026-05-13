@@ -23,3 +23,4 @@ def is_patient(user):
 
 def is_nurse(user):
     return user.role == Role.NURSE
+
